@@ -1,5 +1,6 @@
 import datetime
 import json
+import csv
 import logging.config
 import os
 import base64
@@ -23,6 +24,16 @@ def setup_logging(filename):
 NUBANK_TOKEN = os.getenv('NUBANK_TOKEN')
 NUBANK_CERT = os.getenv('NUBANK_CERT')
 
+
+def clean(transaction):
+    print(transaction)
+    transaction["detail"] = transaction['detail'].split(' - ')[0]
+    if "amount" in transaction:
+        transaction["amount"] = '{:.2f}'.format(
+            transaction['amount']).replace('.', ',')
+    return transaction.values()
+
+
 if __name__ == '__main__':
     log_config_file = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), 'logging.json')
@@ -33,9 +44,15 @@ if __name__ == '__main__':
     nu = Nubank()
     nu.authenticate_with_refresh_token(NUBANK_TOKEN, NUBANK_CERT)
 
-    #credit_transactions = nu.get_card_feed()
-    #logging.info(f'Found {len(credit_transactions)} credit transactions')
-
     account_transactions = nu.get_account_feed()
     logging.info(f'Found {len(account_transactions)} account transactions')
-    logging.info(account_transactions)
+
+    with open('export.csv', mode='w', encoding='utf-8') as tfile:
+        fieldnames = ['id', '__typename', 'title',
+                      'detail', 'postDate', 'amount', 'originAccount', 'destinationAccount']
+        writer = csv.DictWriter(tfile, delimiter=';',
+                                quotechar='"', quoting=csv.QUOTE_MINIMAL, fieldnames=fieldnames)
+
+        data = list(map(lambda t: clean(t), account_transactions))
+        writer.writeheader()
+        writer.writerows(account_transactions)
