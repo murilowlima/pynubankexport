@@ -1,0 +1,31 @@
+{
+    "version": 1,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s %(levelname)-8s %(filename)s %(funcName)s() - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+            "stream": "ext://sys.stdout"
+        },
+        "file_handler": {
+            "level": "DEBUG",
+            "class": "logging.handlers.WatchedFileHandler",
+            "formatter": "default",
+            "filename": "export.log",
+            "mode": "a",
+            "encoding": "utf-8"
+        }
+    },
+    "root": {
+        "handlers": [
+            "console",
+            "file_handler"
+        ],
+        "level": "DEBUG"
+    }
+}
